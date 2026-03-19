@@ -4,7 +4,7 @@ mod config;
 mod types;
 
 use clap::{Parser, Subcommand};
-use commands::{auth, calendar, events, habits, tasks};
+use commands::{auth, calendar, events, habits, init, tasks};
 
 #[derive(Parser)]
 #[command(name = "plania", version, about = "CLI for Plania productivity app")]
@@ -45,6 +45,12 @@ enum Commands {
         #[command(subcommand)]
         action: Option<calendar::AgendaAction>,
     },
+    /// Initialize Plania integrations
+    Init {
+        /// Generate .claude/PLANIA.md and add @PLANIA.md to CLAUDE.md
+        #[arg(long = "claude-code")]
+        claude_code: bool,
+    },
 }
 
 #[tokio::main]
@@ -59,6 +65,13 @@ async fn main() {
         Commands::Events { action } => events::run(action).await,
         Commands::Habits { action } => habits::run(action).await,
         Commands::Agenda { action } => calendar::run(action).await,
+        Commands::Init { claude_code } => {
+            if claude_code {
+                init::claude_code()
+            } else {
+                Err(anyhow::anyhow!("Spécifiez une option : --claude-code"))
+            }
+        }
     };
 
     if let Err(e) = result {

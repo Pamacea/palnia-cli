@@ -92,6 +92,16 @@ Les commandes qui prennent un `<id>` acceptent un **préfixe** de l'UUID. Par ex
 plania tasks done d02c
 ```
 
+## Intégrations
+
+### Claude Code
+
+```bash
+plania init --claude-code
+```
+
+Génère `~/.claude/PLANIA.md` avec la documentation du CLI et ajoute la référence `@PLANIA.md` dans le `~/.claude/CLAUDE.md` global. Idempotent : peut être relancé sans risque de doublon.
+
 ## Configuration
 
 | Variable | Description | Défaut |
