@@ -4,10 +4,10 @@ mod config;
 mod types;
 
 use clap::{Parser, Subcommand};
-use commands::{auth, calendar, events, habits, tasks};
+use commands::{auth, calendar, events, habits, images, tasks};
 
 #[derive(Parser)]
-#[command(name = "plania", version, about = "CLI for Plania productivity app")]
+#[command(name = "palnia", version, about = "CLI for Palnia productivity app")]
 struct Cli {
     #[command(subcommand)]
     command: Commands,
@@ -15,7 +15,7 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    /// Authenticate with a Plania API token
+    /// Authenticate with a Palnia API token
     Login {
         /// API URL override
         #[arg(long)]
@@ -45,6 +45,11 @@ enum Commands {
         #[command(subcommand)]
         action: Option<calendar::AgendaAction>,
     },
+    /// Manage images
+    Images {
+        #[command(subcommand)]
+        action: Option<images::ImageAction>,
+    },
 }
 
 #[tokio::main]
@@ -59,6 +64,7 @@ async fn main() {
         Commands::Events { action } => events::run(action).await,
         Commands::Habits { action } => habits::run(action).await,
         Commands::Agenda { action } => calendar::run(action).await,
+        Commands::Images { action } => images::run(action).await,
     };
 
     if let Err(e) = result {
