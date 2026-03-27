@@ -45,6 +45,20 @@ All notable changes to this project will be documented in this file.
 - Enhanced type definitions with `RecurrenceRule`, `ImageQuota`, `GalleryImage`
 - Improved error messages and validation
 
+## [0.2.1] - 2026-03-27
+
+### Added
+
+- **npm package**: `@oalacea/palnia-cli` for easy installation
+  - Cross-platform binary download from GitHub Releases
+  - Automatic OS detection (Windows, macOS Intel/ARM, Linux x86_64/ARM64)
+  - Install with: `npm install -g @oalacea/palnia-cli`
+
+### Changed
+
+- Updated Cargo.toml with proper repository and homepage links
+- Added license field (MIT)
+
 ## [0.1.1] - 2026-03-18
 
 ### Added
