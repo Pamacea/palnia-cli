@@ -3,6 +3,9 @@ name = "palnia-cli"
 version = "0.2.0"
 edition = "2021"
 description = "CLI for Palnia productivity app"
+license = "MIT"
+repository = "https://github.com/Pamacea/palnia-cli"
+homepage = "https://palnia.newalfox.fr"
 
 [dependencies]
 clap = { version = "4", features = ["derive"] }
