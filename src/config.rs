@@ -16,7 +16,7 @@ pub struct AuthConfig {
 fn config_dir() -> PathBuf {
     dirs::home_dir()
         .expect("Impossible de trouver le répertoire home")
-        .join(".plania")
+        .join(".palnia")
 }
 
 fn config_path() -> PathBuf {

@@ -1,6 +1,6 @@
-# Plania CLI
+# Palnia CLI
 
-CLI Rust pour [Plania](https://plania.newalfox.fr), l'app de productivité tout-en-un.
+CLI Rust pour [Palnia](https://palnia.newalfox.fr), l'app de productivité tout-en-un.
 
 ## Installation
 
@@ -10,28 +10,28 @@ cargo install --path .
 
 ## Authentification
 
-Le CLI utilise des **tokens API** générés depuis l'app Plania (Paramètres > Tokens API).
+Le CLI utilise des **tokens API** générés depuis l'app Palnia (Paramètres > Tokens API).
 
 ```bash
-plania login
+palnia login
 # Coller votre token API (plt_...)
 # URL par défaut : http://localhost:3001/api
 
-plania whoami    # Vérifier la connexion
-plania logout    # Se déconnecter
+palnia whoami    # Vérifier la connexion
+palnia logout    # Se déconnecter
 ```
 
-Configuration stockée dans `~/.plania/config.toml`. L'URL de l'API est configurable via `--url` ou la variable d'env `PLANIA_API_URL`.
+Configuration stockée dans `~/.palnia/config.toml`. L'URL de l'API est configurable via `--url` ou la variable d'env `PALNIA_API_URL`.
 
 ## Commandes
 
 ### Tâches
 
 ```bash
-plania tasks                          # Lister les tâches actives (todo/doing)
-plania tasks all                      # Lister toutes les tâches (inclut done)
-plania tasks add "Titre"              # Créer une tâche
-plania tasks add "Titre" \
+palnia tasks                          # Lister les tâches actives (todo/doing)
+palnia tasks all                      # Lister toutes les tâches (inclut done)
+palnia tasks add "Titre"              # Créer une tâche
+palnia tasks add "Titre" \
   -c professional \                   # Catégorie: spiritual, personal, professional
   -p urgent \                         # Priorité: urgent, normal, low
   --due 2026-03-20 \                  # Date d'échéance
@@ -39,18 +39,18 @@ plania tasks add "Titre" \
   -t cli,rust \                       # Tags (séparés par virgule)
   -s "Sous-tâche 1,Sous-tâche 2"     # Sous-tâches
 
-plania tasks doing <id>               # Marquer en cours
-plania tasks done <id>                # Marquer terminée
-plania tasks delete <id>              # Supprimer
-plania tasks subtask <id> "Titre"     # Ajouter une sous-tâche
+palnia tasks doing <id>               # Marquer en cours
+palnia tasks done <id>                # Marquer terminée
+palnia tasks delete <id>              # Supprimer
+palnia tasks subtask <id> "Titre"     # Ajouter une sous-tâche
 ```
 
 ### Événements
 
 ```bash
-plania events                         # Événements du jour
-plania events week                    # Événements de la semaine
-plania events add "Titre" \
+palnia events                         # Événements du jour
+palnia events week                    # Événements de la semaine
+palnia events add "Titre" \
   --date 2026-03-20 \                 # Date (requis)
   --start 14:00 \                     # Heure de début (défaut: 09:00)
   --end 15:30 \                       # Heure de fin (défaut: 10:00)
@@ -60,28 +60,41 @@ plania events add "Titre" \
   -t meeting,demo \                   # Tags
   --all-day                           # Événement journée entière
 
-plania events delete <id>             # Supprimer
+palnia events delete <id>             # Supprimer
 ```
 
 ### Habitudes
 
 ```bash
-plania habits                         # Lister + statut du jour
-plania habits add "Titre"             # Créer une habitude
-plania habits add "Titre" \
+palnia habits                         # Lister + statut du jour
+palnia habits add "Titre"             # Créer une habitude
+palnia habits add "Titre" \
   -c spiritual \                      # Catégorie
   -f weekly                           # Fréquence: daily, weekly
 
-plania habits toggle <id>             # Cocher/décocher aujourd'hui
-plania habits toggle <id> --date 2026-03-17  # Cocher une date spécifique
-plania habits delete <id>             # Supprimer
+palnia habits toggle <id>             # Cocher/décocher aujourd'hui
+palnia habits toggle <id> --date 2026-03-17  # Cocher une date spécifique
+palnia habits delete <id>             # Supprimer
 ```
 
 ### Agenda
 
 ```bash
-plania agenda                         # Vue combinée du jour (événements + tâches)
-plania agenda week                    # Vue de la semaine
+palnia agenda                         # Vue combinée du jour (événements + tâches)
+palnia agenda week                    # Vue de la semaine
+```
+
+### Images
+
+```bash
+palnia images                         # Lister la galerie
+palnia images upload <file>           # Upload une image
+palnia images upload <file> --task <id>     # Attacher à une tâche
+palnia images upload <file> --event <id>    # Attacher à un événement
+palnia images download <id>           # Télécharger une image
+palnia images delete <id>             # Supprimer
+palnia images rename <id> "Nouveau nom"     # Renommer
+palnia images quota                   # Voir le quota utilisé
 ```
 
 ## Identifiants courts
@@ -89,7 +102,7 @@ plania agenda week                    # Vue de la semaine
 Les commandes qui prennent un `<id>` acceptent un **préfixe** de l'UUID. Par exemple si l'ID est `d02c3f4c-...`, vous pouvez taper :
 
 ```bash
-plania tasks done d02c
+palnia tasks done d02c
 ```
 
 ## Intégrations
@@ -106,7 +119,7 @@ Génère `~/.claude/PLANIA.md` avec la documentation du CLI et ajoute la référ
 
 | Variable | Description | Défaut |
 |----------|-------------|--------|
-| `PLANIA_API_URL` | URL de l'API Plania | `http://localhost:3001/api` |
+| `PALNIA_API_URL` | URL de l'API Palnia | `http://localhost:3001/api` |
 
 ## Stack
 

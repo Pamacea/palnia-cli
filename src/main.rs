@@ -4,10 +4,10 @@ mod config;
 mod types;
 
 use clap::{Parser, Subcommand};
-use commands::{auth, calendar, events, habits, init, tasks};
+use commands::{auth, calendar, events, habits, images, init, tasks};
 
 #[derive(Parser)]
-#[command(name = "plania", version, about = "CLI for Plania productivity app")]
+#[command(name = "palnia", version, about = "CLI for Palnia productivity app")]
 struct Cli {
     #[command(subcommand)]
     command: Commands,
@@ -15,7 +15,7 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    /// Authenticate with a Plania API token
+    /// Authenticate with a Palnia API token
     Login {
         /// API URL override
         #[arg(long)]
@@ -45,9 +45,14 @@ enum Commands {
         #[command(subcommand)]
         action: Option<calendar::AgendaAction>,
     },
-    /// Initialize Plania integrations
+    /// Manage images
+    Images {
+        #[command(subcommand)]
+        action: Option<images::ImageAction>,
+    },
+    /// Initialize Palnia integrations
     Init {
-        /// Generate .claude/PLANIA.md and add @PLANIA.md to CLAUDE.md
+        /// Generate .claude/PALNIA.md and add @PALNIA.md to CLAUDE.md
         #[arg(long = "claude-code")]
         claude_code: bool,
     },
@@ -65,6 +70,7 @@ async fn main() {
         Commands::Events { action } => events::run(action).await,
         Commands::Habits { action } => habits::run(action).await,
         Commands::Agenda { action } => calendar::run(action).await,
+        Commands::Images { action } => images::run(action).await,
         Commands::Init { claude_code } => {
             if claude_code {
                 init::claude_code()

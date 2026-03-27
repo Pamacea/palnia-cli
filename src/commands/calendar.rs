@@ -38,7 +38,8 @@ async fn agenda_today(client: &Client) -> Result<()> {
     if !today_events.is_empty() {
         println!("\n  {}", "Événements".cyan().bold());
         for event in &today_events {
-            let time = if event.all_day {
+            let is_all_day = event.start_time == "00:00" && event.end_time == "23:59";
+            let time = if is_all_day {
                 "Journée  ".to_string()
             } else {
                 format!("{}-{}", event.start_time, event.end_time)
@@ -98,7 +99,8 @@ async fn agenda_week(client: &Client) -> Result<()> {
                 current_date = event.date.clone();
                 println!("\n  {}", current_date.bold());
             }
-            let time = if event.all_day {
+            let is_all_day = event.start_time == "00:00" && event.end_time == "23:59";
+            let time = if is_all_day {
                 "Journée  ".to_string()
             } else {
                 format!("{}-{}", event.start_time, event.end_time)
