@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.6] - 2026-04-01
+
+### Fixed
+
+- Update notification now displays even on Ctrl+C during login
+  - Uses Drop guard to ensure notification runs before exit
+
 ## [0.2.5] - 2026-04-01
 
 ### Fixed

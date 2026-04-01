@@ -60,12 +60,35 @@ enum Commands {
     Update,
 }
 
+/// Guard qui affiche la notification de mise à jour à la fin (même en erreur)
+struct UpdateNotifier {
+    enabled: bool,
+}
+
+impl UpdateNotifier {
+    fn new(enabled: bool) -> Self {
+        Self { enabled }
+    }
+}
+
+impl Drop for UpdateNotifier {
+    fn drop(&mut self) {
+        if self.enabled {
+            // Spawn un runtime tokio pour la notification async
+            let _ = tokio::runtime::Runtime::new()
+                .expect("Failed to create runtime")
+                .block_on(update::notify_update_available());
+        }
+    }
+}
+
 #[tokio::main]
 async fn main() {
     let cli = Cli::parse();
 
-    // Vérifier les mises à jour en arrière-plan (sauf pour la commande update)
+    // Guard qui notifiera à la fin (sauf pour update)
     let is_update_cmd = matches!(cli.command, Commands::Update);
+    let _notifier = UpdateNotifier::new(!is_update_cmd);
 
     let result = match cli.command {
         Commands::Login { url } => auth::login(url).await,
@@ -85,11 +108,6 @@ async fn main() {
         }
         Commands::Update => update::update().await,
     };
-
-    // Notification de mise à jour en arrière-plan (non bloquante)
-    if !is_update_cmd {
-        update::notify_update_available().await;
-    }
 
     if let Err(e) = result {
         eprintln!("{}", e);
