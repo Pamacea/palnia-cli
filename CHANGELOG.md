@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.7] - 2026-04-01
+
+### Fixed
+
+- npm install script now reads version from package.json instead of hardcoded value
+  - Previous versions were always downloading v0.2.4 binary
+
 ## [0.2.6] - 2026-04-01
 
 ### Added
