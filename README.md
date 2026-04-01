@@ -5,7 +5,11 @@ CLI Rust pour [Palnia](https://palnia.newalfox.fr), l'app de productivité tout-
 ## Installation
 
 ```bash
-cargo install --path .
+# Via npm (recommandé)
+npm install -g @oalacea/palnia-cli
+
+# Ou via cargo
+cargo install palnia-cli
 ```
 
 ## Authentification
@@ -114,6 +118,14 @@ palnia init --claude-code
 ```
 
 Génère `~/.claude/PALNIA.md` avec la documentation du CLI et ajoute la référence `@PALNIA.md` dans le `~/.claude/CLAUDE.md` global. Idempotent : peut être relancé sans risque de doublon.
+
+### Mise à jour
+
+```bash
+palnia update    # Mettre à jour vers la dernière version
+```
+
+Le CLI vérifie automatiquement les mises à jour à chaque exécution et vous notifie si une nouvelle version est disponible.
 
 ## Configuration
 

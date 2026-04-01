@@ -4,7 +4,7 @@ mod config;
 mod types;
 
 use clap::{Parser, Subcommand};
-use commands::{auth, calendar, events, habits, images, init, tasks};
+use commands::{auth, calendar, events, habits, images, init, tasks, update};
 
 #[derive(Parser)]
 #[command(name = "palnia", version, about = "CLI for Palnia productivity app")]
@@ -56,11 +56,16 @@ enum Commands {
         #[arg(long = "claude-code")]
         claude_code: bool,
     },
+    /// Update to the latest version
+    Update,
 }
 
 #[tokio::main]
 async fn main() {
     let cli = Cli::parse();
+
+    // Vérifier les mises à jour en arrière-plan (sauf pour la commande update)
+    let is_update_cmd = matches!(cli.command, Commands::Update);
 
     let result = match cli.command {
         Commands::Login { url } => auth::login(url).await,
@@ -78,7 +83,13 @@ async fn main() {
                 Err(anyhow::anyhow!("Spécifiez une option : --claude-code"))
             }
         }
+        Commands::Update => update::update().await,
     };
+
+    // Notification de mise à jour en arrière-plan (non bloquante)
+    if !is_update_cmd {
+        update::notify_update_available().await;
+    }
 
     if let Err(e) = result {
         eprintln!("{}", e);

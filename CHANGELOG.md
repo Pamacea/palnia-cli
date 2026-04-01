@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.2] - 2026-04-01
+
+### Added
+
+- **Auto-update**: `palnia update` command to update to the latest version
+- **Update notifications**: Automatic check for updates on every command (non-blocking)
+- **npm wrapper**: Fixed `run.js` for proper binary execution
+
+### Changed
+
+- README updated with npm installation instructions and update documentation
+
 ## [0.2.0] - 2026-03-27
 
 ### Added

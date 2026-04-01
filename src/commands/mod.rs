@@ -5,3 +5,4 @@ pub mod habits;
 pub mod images;
 pub mod init;
 pub mod tasks;
+pub mod update;
