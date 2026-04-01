@@ -6,12 +6,12 @@ use crate::client::Client;
 use crate::config::{self, AuthConfig};
 use crate::types::User;
 
-const DEFAULT_API_URL: &str = "http://localhost:3001/api";
+const DEFAULT_API_URL: &str = "https://palnia.newalfox.fr/api";
 
 pub async fn login(url_override: Option<String>) -> Result<()> {
     let api_url = if let Some(url) = url_override {
         url
-    } else if let Ok(env_url) = std::env::var("PLANIA_API_URL") {
+    } else if let Ok(env_url) = std::env::var("PALNIA_API_URL") {
         env_url
     } else {
         let input: String = Input::new()
