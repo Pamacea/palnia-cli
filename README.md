@@ -15,7 +15,7 @@ Le CLI utilise des **tokens API** générés depuis l'app Palnia (Paramètres > 
 ```bash
 palnia login
 # Coller votre token API (plt_...)
-# URL par défaut : http://localhost:3001/api
+# URL par défaut : https://palnia.newalfox.fr/api
 
 palnia whoami    # Vérifier la connexion
 palnia logout    # Se déconnecter
@@ -110,16 +110,16 @@ palnia tasks done d02c
 ### Claude Code
 
 ```bash
-plania init --claude-code
+palnia init --claude-code
 ```
 
-Génère `~/.claude/PLANIA.md` avec la documentation du CLI et ajoute la référence `@PLANIA.md` dans le `~/.claude/CLAUDE.md` global. Idempotent : peut être relancé sans risque de doublon.
+Génère `~/.claude/PALNIA.md` avec la documentation du CLI et ajoute la référence `@PALNIA.md` dans le `~/.claude/CLAUDE.md` global. Idempotent : peut être relancé sans risque de doublon.
 
 ## Configuration
 
 | Variable | Description | Défaut |
 |----------|-------------|--------|
-| `PALNIA_API_URL` | URL de l'API Palnia | `http://localhost:3001/api` |
+| `PALNIA_API_URL` | URL de l'API Palnia | `https://palnia.newalfox.fr/api` |
 
 ## Stack
 

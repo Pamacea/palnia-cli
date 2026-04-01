@@ -33,9 +33,9 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
-- **Renamed**: `plania` → `palnia` (app rename synchronization)
-- **Config directory**: `~/.plania/` → `~/.palnia/`
-- **Binary name**: `plania-cli` → `palnia-cli`
+- **Renamed**: `palnia` branding unified across all files
+- **Config directory**: `~/.palnia/`
+- **Binary name**: `palnia-cli`
 - **API token prefix**: Now uses `plt_*` tokens (Palnia tokens)
 
 ### Technical
@@ -45,7 +45,12 @@ All notable changes to this project will be documented in this file.
 - Enhanced type definitions with `RecurrenceRule`, `ImageQuota`, `GalleryImage`
 - Improved error messages and validation
 
-## [0.2.1] - 2026-03-27
+## [0.2.1] - 2026-04-01
+
+### Fixed
+
+- **API URL**: Changed default API URL from `localhost` to `https://palnia.newalfox.fr/api`
+- **npm install**: Added GitHub Actions workflow for automatic releases with cross-platform binaries
 
 ### Added
 
@@ -53,11 +58,7 @@ All notable changes to this project will be documented in this file.
   - Cross-platform binary download from GitHub Releases
   - Automatic OS detection (Windows, macOS Intel/ARM, Linux x86_64/ARM64)
   - Install with: `npm install -g @oalacea/palnia-cli`
-
-### Changed
-
-- Updated Cargo.toml with proper repository and homepage links
-- Added license field (MIT)
+- **GitHub Actions**: Automatic release workflow building binaries for all platforms
 
 ## [0.1.1] - 2026-03-18
 
@@ -69,11 +70,11 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- Initial release for Plania productivity app
+- Initial release for Palnia productivity app
 - Commands: login, logout, whoami, tasks, events, habits, agenda
 - Tasks: add (with category, priority, due date, notes, tags, subtasks), done, doing, delete, subtask, all
 - Events: list today/week, add (with category, description, notes, tags, all-day), delete
 - Habits: list, add (with category, frequency), toggle (with custom date), delete
 - Agenda: combined view (events + tasks) for today and week
-- Config stored in `~/.plania/config.toml`
+- Config stored in `~/.palnia/config.toml`
 - API token auth (plt_* tokens)
