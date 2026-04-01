@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.4] - 2026-04-01
+
+### Fixed
+
+- **npm wrapper**: Fixed security warning by using spawnSync instead of spawn
+- **update command**: npm installations now show instructions to update via npm
+  - Cannot self-update binary while running on Windows
+  - Shows: `npm update -g @oalacea/palnia-cli` command
+
 ## [0.2.3] - 2026-04-01
 
 ### Fixed

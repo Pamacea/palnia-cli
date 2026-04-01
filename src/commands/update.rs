@@ -61,6 +61,16 @@ pub async fn notify_update_available() {
     }
 }
 
+/// Vérifie si le CLI est installé via npm
+fn is_npm_installation() -> bool {
+    if let Ok(exe) = env::current_exe() {
+        if let Some(path) = exe.to_str() {
+            return path.contains(".palnia") && path.contains("bin");
+        }
+    }
+    false
+}
+
 /// Met à jour le CLI vers la dernière version
 pub async fn update() -> Result<()> {
     println!("{} Vérification des mises à jour...", "⟳".yellow().bold());
@@ -94,7 +104,18 @@ pub async fn update() -> Result<()> {
         latest_version.green().bold()
     );
 
-    // Déterminer la plateforme
+    // Pour installation npm, on ne peut pas remplacer le binaire en cours d'exécution sur Windows
+    if is_npm_installation() {
+        println!("\n{} Installation détectée: npm", "ℹ".dimmed());
+        println!("\nPour mettre à jour, lancez:");
+        println!("  {} {}", "`npm update -g @oalacea/palnia-cli`".bold().cyan(),
+                 "ou".dimmed());
+        println!("  {} {}\n", "`npm install -g @oalacea/palnia-cli@latest`".bold().cyan(),
+                 "pour forcer la réinstallation.".dimmed());
+        return Ok(());
+    }
+
+    // Pour cargo ou développement, on essaie de remplacer le binaire
     let (platform, arch) = if cfg!(windows) {
         ("windows", "x86_64-pc-windows-msvc")
     } else if cfg!(target_os = "macos") {
@@ -123,11 +144,14 @@ pub async fn update() -> Result<()> {
     let resp = client.get(&download_url).send().await?;
 
     if !resp.status().is_success() {
-        anyhow::bail!(
-            "Impossible de télécharger le binaire pour votre plateforme ({} {}).\n\
-             Visitez {} pour télécharger manuellement.",
-            platform, arch, release.html_url
+        println!(
+            "\n{} Impossible de télécharger le binaire pour votre plateforme ({} {}).",
+            "✗".red(),
+            platform,
+            arch
         );
+        println!("Visitez: {}\n", release.html_url);
+        anyhow::bail!("Binaire non disponible pour cette plateforme");
     }
 
     let bytes = resp.bytes().await?;
@@ -164,7 +188,7 @@ pub async fn update() -> Result<()> {
     });
 
     println!(
-        "{} {} → {}",
+        "\n{} {} → {}\n",
         "✓ Mis à jour avec succès !".green().bold(),
         CURRENT_VERSION.dimmed(),
         latest_version.green().bold()
