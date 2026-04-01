@@ -64,8 +64,15 @@ enum Commands {
 async fn main() {
     let cli = Cli::parse();
 
-    // Vérifier les mises à jour en arrière-plan (sauf pour la commande update)
+    // Auto-update silencieux avant toute commande (sauf update)
     let is_update_cmd = matches!(cli.command, Commands::Update);
+    if !is_update_cmd {
+        if update::auto_update_silent().await {
+            // Une mise à jour a été effectuée, on relance la commande
+            update::restart_with_new_version();
+            return;
+        }
+    }
 
     let result = match cli.command {
         Commands::Login { url } => auth::login(url).await,
@@ -85,11 +92,6 @@ async fn main() {
         }
         Commands::Update => update::update().await,
     };
-
-    // Notification de mise à jour en arrière-plan (non bloquante)
-    if !is_update_cmd {
-        update::notify_update_available().await;
-    }
 
     if let Err(e) = result {
         eprintln!("{}", e);

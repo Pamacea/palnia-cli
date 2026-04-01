@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.6] - 2026-04-01
+
+### Added
+
+- **Auto-update**: Automatic update before any command
+  - Downloads and installs latest version silently
+  - Restarts the command with new version
+  - npm installations show update message only
+
+### Fixed
+
+- Update notification now displays before command execution
+
 ## [0.2.5] - 2026-04-01
 
 ### Fixed
