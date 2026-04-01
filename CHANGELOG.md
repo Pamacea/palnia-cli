@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.3] - 2026-04-01
+
+### Fixed
+
+- **npm wrapper**: Fixed security warning in run.js (removed shell option)
+- **login flow**: No longer prompts for API URL - uses default automatically
+  - Use `--url <URL>` flag for custom API URL
+  - Default: `https://palnia.newalfox.fr/api`
+
 ## [0.2.2] - 2026-04-01
 
 ### Added

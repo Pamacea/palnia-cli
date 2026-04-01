@@ -5,19 +5,20 @@ const path = require('path');
 const { spawn } = require('child_process');
 
 const platform = os.platform();
-let binName, binDir;
-
-// Same directory as install.js uses
-binDir = path.join(os.homedir(), '.palnia', 'bin');
-binName = platform === 'win32' ? 'palnia.exe' : 'palnia';
-
+const binDir = path.join(os.homedir(), '.palnia', 'bin');
+const binName = platform === 'win32' ? 'palnia.exe' : 'palnia';
 const binPath = path.join(binDir, binName);
 
-// Spawn the binary with all arguments
-const child = spawn(binPath, process.argv.slice(2), {
+const options = {
   stdio: 'inherit',
-  shell: platform === 'win32'
-});
+};
+
+// Sur Windows, utilise shell seulement si nécessaire pour .exe
+if (platform === 'win32') {
+  options.shell = false; // Pas de shell = plus sécurisé
+}
+
+const child = spawn(binPath, process.argv.slice(2), options);
 
 child.on('error', (err) => {
   if (err.code === 'ENOENT') {

@@ -7,7 +7,7 @@ const path = require('path');
 const os = require('os');
 
 const PACKAGE_NAME = '@palnia/cli';
-const VERSION = '0.2.2';
+const VERSION = '0.2.3';
 const GITHUB_REPO = 'Pamacea/palnia-cli';
 
 // Detect platform
