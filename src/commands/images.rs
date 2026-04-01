@@ -185,11 +185,6 @@ async fn upload(client: &Client, file: PathBuf, task: Option<String>, event: Opt
         anyhow::bail!("Fichier introuvable: {:?}", file);
     }
 
-    let filename = file
-        .file_name()
-        .and_then(|n| n.to_str())
-        .unwrap_or("inconnu");
-
     // Préparer les champs supplémentaires
     let mut extra_fields = Vec::new();
     if let Some(ref tid) = task {

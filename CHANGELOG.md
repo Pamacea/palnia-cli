@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.5] - 2026-04-01
+
+### Fixed
+
+- Removed unused code (dead code warnings)
+  - Removed unused `id` field from `UploadResponse` in events and tasks commands
+  - Removed unused `filename` variable in images command
+
 ## [0.2.4] - 2026-04-01
 
 ### Fixed

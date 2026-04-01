@@ -391,7 +391,6 @@ async fn add(
         if path.exists() {
             #[derive(serde::Deserialize)]
             struct UploadResponse {
-                id: String,
                 original_name: String,
             }
             let resp: UploadResponse = client
