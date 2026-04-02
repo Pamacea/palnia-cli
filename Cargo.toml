@@ -1,6 +1,6 @@
 [package]
 name = "palnia-cli"
-version = "0.2.7"
+version = "0.3.0"
 edition = "2021"
 description = "CLI for Palnia productivity app"
 license = "MIT"

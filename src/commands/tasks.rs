@@ -1,10 +1,10 @@
-use anyhow::Result;
+use anyhow::{Context, Result};
 use clap::Subcommand;
 use colored::Colorize;
 use std::path::PathBuf;
 
 use crate::client::Client;
-use crate::types::{AddSubtask, CreateTask, RecurrenceRule, Subtask, Task, UpdateTask};
+use crate::types::{AddSubtask, CreateTask, ImportTasks, RecurrenceRule, ReorderTasks, Subtask, Task, UpdateTask};
 
 /// Expand ~ to home directory in path
 fn expand_home(path: &str) -> String {
@@ -122,6 +122,30 @@ pub enum TaskAction {
         /// Subtask title
         title: String,
     },
+    /// Reorder tasks
+    Reorder {
+        /// Task ID (first chars)
+        id: String,
+        /// New index (0-based)
+        index: usize,
+    },
+    /// Cycle task status (todo -> doing -> done -> todo)
+    Cycle {
+        /// Task ID (first chars)
+        id: String,
+    },
+    /// Toggle a subtask (done/undone)
+    ToggleSubtask {
+        /// Task ID (first chars)
+        task_id: String,
+        /// Subtask ID (first chars)
+        subtask_id: String,
+    },
+    /// Import tasks from JSON file
+    Import {
+        /// JSON file path (supports ~ for home directory)
+        file: String,
+    },
 }
 
 pub async fn run(action: Option<TaskAction>) -> Result<()> {
@@ -177,6 +201,12 @@ pub async fn run(action: Option<TaskAction>) -> Result<()> {
         Some(TaskAction::Archive { id }) => set_archive(&client, &id, true).await,
         Some(TaskAction::Unarchive { id }) => set_archive(&client, &id, false).await,
         Some(TaskAction::Subtask { id, title }) => add_subtask(&client, &id, title).await,
+        Some(TaskAction::Reorder { id, index }) => reorder(&client, &id, index).await,
+        Some(TaskAction::Cycle { id }) => cycle_status(&client, &id).await,
+        Some(TaskAction::ToggleSubtask { task_id, subtask_id }) => {
+            toggle_subtask(&client, &task_id, &subtask_id).await
+        }
+        Some(TaskAction::Import { file }) => import(&client, &file).await,
     }
 }
 
@@ -556,4 +586,110 @@ fn find_by_prefix<'a>(tasks: &'a [Task], prefix: &str) -> Result<&'a Task> {
             prefix
         ),
     }
+}
+
+async fn reorder(client: &Client, id_prefix: &str, new_index: usize) -> Result<()> {
+    let tasks: Vec<Task> = client.get("/tasks").await?;
+    let matched = find_by_prefix(&tasks, id_prefix)?;
+    let _: serde_json::Value = client
+        .post(
+            "/tasks/reorder",
+            &ReorderTasks {
+                task_id: matched.id.clone(),
+                new_index,
+            },
+        )
+        .await?;
+    println!(
+        "{} {} deplacee a l'index {}",
+        "OK".green(),
+        matched.title.bold(),
+        new_index
+    );
+    Ok(())
+}
+
+async fn cycle_status(client: &Client, id_prefix: &str) -> Result<()> {
+    let tasks: Vec<Task> = client.get("/tasks").await?;
+    let matched = find_by_prefix(&tasks, id_prefix)?;
+    let updated: Task = client
+        .post(&format!("/tasks/{}/cycle-status", matched.id), &())
+        .await?;
+    let label = match updated.status.as_str() {
+        "done" => "terminee",
+        "doing" => "en cours",
+        "todo" => "a faire",
+        _ => &updated.status,
+    };
+    println!(
+        "{} {} marquee comme {}",
+        "OK".green(),
+        matched.title.bold(),
+        label
+    );
+    Ok(())
+}
+
+async fn toggle_subtask(
+    client: &Client,
+    task_id_prefix: &str,
+    subtask_id_prefix: &str,
+) -> Result<()> {
+    let tasks: Vec<Task> = client.get("/tasks").await?;
+    let matched_task = find_by_prefix(&tasks, task_id_prefix)?;
+
+    let subtasks = matched_task
+        .subtasks
+        .as_ref()
+        .ok_or_else(|| anyhow::anyhow!("Cette tache n'a pas de sous-taches"))?;
+
+    let matched_subtask = subtasks
+        .iter()
+        .find(|st| st.id.starts_with(subtask_id_prefix))
+        .ok_or_else(|| anyhow::anyhow!("Aucune sous-tache trouvee avec le prefixe '{}'", subtask_id_prefix))?;
+
+    let _: Subtask = client
+        .patch(&format!("/tasks/{}/subtasks/{}", matched_task.id, matched_subtask.id), &())
+        .await?;
+
+    let new_status = if matched_subtask.done { "non faite" } else { "faite" };
+    println!(
+        "{} Sous-tache {}",
+        "OK".green(),
+        format!("\"{}\" marquee comme {}", matched_subtask.title, new_status).bold()
+    );
+    Ok(())
+}
+
+async fn import(client: &Client, file_path: &str) -> Result<()> {
+    let expanded = expand_home(file_path);
+    let path = std::path::PathBuf::from(&expanded);
+
+    if !path.exists() {
+        anyhow::bail!("Fichier introuvable: {}", expanded);
+    }
+
+    let content = std::fs::read_to_string(&path)
+        .with_context(|| format!("Impossible de lire le fichier: {}", expanded))?;
+
+    let import_tasks: ImportTasks = serde_json::from_str(&content)
+        .with_context(|| format!("Impossible de parser le JSON. Le fichier doit contenir un objet avec la propriete \"tasks\""))?;
+
+    if import_tasks.tasks.is_empty() {
+        println!("{} Aucune tache a importer", "WARNING".yellow());
+        return Ok(());
+    }
+
+    let imported: Vec<Task> = client.post("/tasks/import", &import_tasks).await?;
+
+    println!(
+        "{} {} tache(s) importee(s)",
+        "OK".green(),
+        imported.len()
+    );
+    for task in &imported {
+        println!("  - {}", task.title);
+    }
+
+    Ok(())
 }

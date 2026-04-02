@@ -1,10 +1,10 @@
-use anyhow::Result;
+use anyhow::{Context, Result};
 use chrono::Local;
 use clap::Subcommand;
 use colored::Colorize;
 
 use crate::client::Client;
-use crate::types::{CreateHabit, Habit};
+use crate::types::{CreateHabit, Habit, ImportHabits, UpdateHabit};
 
 #[derive(Subcommand)]
 pub enum HabitAction {
@@ -32,6 +32,25 @@ pub enum HabitAction {
         /// Habit ID (first chars)
         id: String,
     },
+    /// Update a habit
+    Update {
+        /// Habit ID (first chars)
+        id: String,
+        /// New title
+        #[arg(long)]
+        title: Option<String>,
+        /// New category: spiritual, personal, professional
+        #[arg(long)]
+        category: Option<String>,
+        /// New frequency: daily, weekly
+        #[arg(long)]
+        frequency: Option<String>,
+    },
+    /// Import habits from a JSON file
+    Import {
+        /// Path to JSON file containing habits array
+        file: String,
+    },
 }
 
 pub async fn run(action: Option<HabitAction>) -> Result<()> {
@@ -46,6 +65,13 @@ pub async fn run(action: Option<HabitAction>) -> Result<()> {
             frequency,
         }) => add(&client, title, category, frequency).await,
         Some(HabitAction::Delete { id }) => delete(&client, &id).await,
+        Some(HabitAction::Update {
+            id,
+            title,
+            category,
+            frequency,
+        }) => update(&client, &id, title, category, frequency).await,
+        Some(HabitAction::Import { file }) => import(&client, &file).await,
     }
 }
 
@@ -159,4 +185,71 @@ fn find_by_prefix<'a>(habits: &'a [Habit], prefix: &str) -> Result<&'a Habit> {
             prefix
         ),
     }
+}
+
+async fn update(
+    client: &Client,
+    id_prefix: &str,
+    title: Option<String>,
+    category: Option<String>,
+    frequency: Option<String>,
+) -> Result<()> {
+    if title.is_none() && category.is_none() && frequency.is_none() {
+        anyhow::bail!("Au moins un champ doit être spécifié (title, category ou frequency)");
+    }
+
+    if let Some(ref cat) = category {
+        if !["spiritual", "personal", "professional"].contains(&cat.as_str()) {
+            anyhow::bail!("Catégorie invalide: '{}'. Valeurs: spiritual, personal, professional", cat);
+        }
+    }
+    if let Some(ref freq) = frequency {
+        if !["daily", "weekly"].contains(&freq.as_str()) {
+            anyhow::bail!("Fréquence invalide: '{}'. Valeurs: daily, weekly", freq);
+        }
+    }
+
+    let habits: Vec<Habit> = client.get("/habits").await?;
+    let matched = find_by_prefix(&habits, id_prefix)?;
+
+    let updated: Habit = client
+        .patch(
+            &format!("/habits/{}", matched.id),
+            &UpdateHabit {
+                title,
+                category,
+                frequency,
+            },
+        )
+        .await?;
+
+    println!("{} Habitude mise à jour: {}", "✓".green().bold(), updated.title.bold());
+    Ok(())
+}
+
+async fn import(client: &Client, file_path: &str) -> Result<()> {
+    let path = std::path::Path::new(file_path);
+    let content = std::fs::read_to_string(path)
+        .with_context(|| format!("Impossible de lire le fichier: {}", file_path))?;
+
+    let import_data: ImportHabits = serde_json::from_str(&content)
+        .with_context(|| format!("JSON invalide dans le fichier: {}", file_path))?;
+
+    if import_data.habits.is_empty() {
+        println!("Aucune habitude à importer (fichier vide ou tableau vide).");
+        return Ok(());
+    }
+
+    let imported: Vec<Habit> = client.post("/habits/import", &import_data).await?;
+
+    println!(
+        "{} {} habitude(s) importée(s):",
+        "✓".green().bold(),
+        imported.len()
+    );
+    for habit in &imported {
+        println!("  - {}", habit.title);
+    }
+
+    Ok(())
 }

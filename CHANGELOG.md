@@ -2,6 +2,45 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.0] - 2026-04-02
+
+### Added
+
+#### Tasks
+- **Reorder**: `palnia tasks reorder <id> <index>` - Change task order
+- **Cycle status**: `palnia tasks cycle <id>` - Quick toggle todo→doing→done→todo
+- **Toggle subtask**: `palnia tasks toggle-subtask <task_id> <subtask_id>` - Mark individual subtask as done
+- **Import tasks**: `palnia tasks import <file.json>` - Import tasks from JSON file
+
+#### Habits
+- **Update habit**: `palnia habits update <id>` - Modify habit title, category, or frequency
+- **Import habits**: `palnia habits import <file.json>` - Import habits from JSON file
+
+#### Events
+- **Multi-day events**: `--end-date` option for events spanning multiple days
+- **Excluded dates**: `--exclude-dates` option for recurring event exceptions
+- **Detached events**: `--detached-from-id` for detached recurring instances
+- **Event subtasks**: `--subtasks` option to add subtasks to events
+- **Import events**: `palnia events import <file.json>` - Import events from JSON file
+
+#### API Tokens
+- **New command**: `palnia tokens` - Manage API tokens
+  - `palnia tokens` - List all tokens
+  - `palnia tokens add "<name>" [--expires-in-days N]` - Create new token
+  - `palnia tokens delete <id>` - Revoke a token
+  - Shows token prefix, expiration status, last used date
+  - Full token only shown on creation (save it!)
+
+#### Timer State (Pomodoro)
+- **New command**: `palnia timer` - Manage timer state
+  - `palnia timer get <type>` - Get current timer state
+  - `palnia timer set <type> <json>` - Save timer state
+  - Example: `palnia timer set pomodoro '{"timeLeft":1500,"isActive":true}'`
+
+### Changed
+- **Client**: Added `put()` method for PUT requests
+- **Types**: Extended with Import/Export types, Timer types, API Token types
+
 ## [0.2.7] - 2026-04-01
 
 ### Fixed

@@ -71,6 +71,20 @@ impl Client {
         self.handle_response(resp).await
     }
 
+    pub async fn put<T: DeserializeOwned, B: serde::Serialize>(
+        &self,
+        path: &str,
+        body: &B,
+    ) -> Result<T> {
+        let resp = self
+            .http
+            .put(format!("{}{}", self.base_url, path))
+            .json(body)
+            .send()
+            .await?;
+        self.handle_response(resp).await
+    }
+
     pub async fn delete(&self, path: &str) -> Result<()> {
         let resp = self
             .http

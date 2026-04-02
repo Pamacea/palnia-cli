@@ -2,10 +2,11 @@ use anyhow::Result;
 use chrono::Local;
 use clap::Subcommand;
 use colored::Colorize;
+use std::fs;
 use std::path::PathBuf;
 
 use crate::client::Client;
-use crate::types::{CreateEvent, Event, RecurrenceRule, UpdateEvent};
+use crate::types::{CreateEvent, CreateEventSubtask, Event, ImportEvent, ImportEvents, RecurrenceRule, UpdateEvent};
 
 /// Expand ~ to home directory in path
 fn expand_home(path: &str) -> String {
@@ -68,6 +69,18 @@ pub enum EventAction {
         /// Attach an image file (supports ~ for home directory)
         #[arg(long)]
         image: Option<String>,
+        /// End date for multi-day events (YYYY-MM-DD)
+        #[arg(long)]
+        end_date: Option<String>,
+        /// Excluded dates for recurring events (comma-separated YYYY-MM-DD)
+        #[arg(long, value_delimiter = ',')]
+        exclude_dates: Option<Vec<String>>,
+        /// ID of the event this is detached from
+        #[arg(long)]
+        detached_from_id: Option<String>,
+        /// Subtasks (comma-separated titles)
+        #[arg(long, value_delimiter = ',')]
+        subtasks: Option<Vec<String>>,
     },
     /// Update an existing event
     Update {
@@ -103,6 +116,20 @@ pub enum EventAction {
         /// Toggle all-day
         #[arg(long)]
         all_day: Option<bool>,
+        /// End date for multi-day events (YYYY-MM-DD)
+        #[arg(long)]
+        end_date: Option<String>,
+        /// Excluded dates for recurring events (comma-separated YYYY-MM-DD)
+        #[arg(long, value_delimiter = ',')]
+        exclude_dates: Option<Vec<String>>,
+        /// ID of the event this is detached from
+        #[arg(long)]
+        detached_from_id: Option<String>,
+    },
+    /// Import events from JSON file
+    Import {
+        /// JSON file path (supports ~ for home directory)
+        file: String,
     },
     /// Delete an event
     Delete {
@@ -133,6 +160,10 @@ pub async fn run(action: Option<EventAction>) -> Result<()> {
             recurrence_days,
             reminder,
             image,
+            end_date,
+            exclude_dates,
+            detached_from_id,
+            subtasks,
         }) => {
             add(
                 &client,
@@ -151,6 +182,10 @@ pub async fn run(action: Option<EventAction>) -> Result<()> {
                 recurrence_days,
                 reminder,
                 image,
+                end_date,
+                exclude_dates,
+                detached_from_id,
+                subtasks,
             )
             .await
         }
@@ -166,6 +201,9 @@ pub async fn run(action: Option<EventAction>) -> Result<()> {
             tags,
             reminder,
             all_day,
+            end_date,
+            exclude_dates,
+            detached_from_id,
         }) => {
             update(
                 &client,
@@ -180,10 +218,14 @@ pub async fn run(action: Option<EventAction>) -> Result<()> {
                 tags,
                 reminder,
                 all_day,
+                end_date,
+                exclude_dates,
+                detached_from_id,
             )
             .await
         }
         Some(EventAction::Delete { id }) => delete(&client, &id).await,
+        Some(EventAction::Import { file }) => import(&client, &file).await,
     }
 }
 
@@ -297,6 +339,10 @@ async fn add(
     recurrence_days: Option<Vec<u8>>,
     reminder: Option<i32>,
     image: Option<String>,
+    end_date: Option<String>,
+    exclude_dates: Option<Vec<String>>,
+    detached_from_id: Option<String>,
+    subtasks: Option<Vec<String>>,
 ) -> Result<()> {
     if let Some(ref cat) = category {
         if !["spiritual", "personal", "professional"].contains(&cat.as_str()) {
@@ -344,6 +390,14 @@ async fn add(
         None
     };
 
+    // Build subtasks if provided
+    let event_subtasks: Option<Vec<CreateEventSubtask>> = subtasks.map(|titles| {
+        titles
+            .into_iter()
+            .map(|title| CreateEventSubtask { title })
+            .collect()
+    });
+
     let event: Event = client
         .post(
             "/events",
@@ -359,6 +413,10 @@ async fn add(
                 all_day: if all_day { Some(true) } else { None },
                 recurrence: recurrence_rule,
                 reminder_minutes: reminder,
+                end_date,
+                excluded_dates: exclude_dates,
+                detached_from_id,
+                subtasks: event_subtasks,
             },
         )
         .await?;
@@ -369,10 +427,16 @@ async fn add(
         ""
     };
 
+    let multi_day_note = if event.end_date.is_some() {
+        " (multi-jours)"
+    } else {
+        ""
+    };
+
     let is_all_day = event.start_time == "00:00" && event.end_time == "23:59";
 
     println!(
-        "{} Événement créé: {} le {} {}{}",
+        "{} Événement créé: {} le {} {}{}{}",
         "✓".green().bold(),
         event.title.bold(),
         event.date,
@@ -381,7 +445,8 @@ async fn add(
         } else {
             format!("{}-{}", event.start_time, event.end_time)
         },
-        recurrence_note
+        recurrence_note,
+        multi_day_note
     );
 
     // Upload image if provided
@@ -423,6 +488,9 @@ async fn update(
     tags: Option<Vec<String>>,
     reminder: Option<i32>,
     all_day: Option<bool>,
+    end_date: Option<String>,
+    exclude_dates: Option<Vec<String>>,
+    detached_from_id: Option<String>,
 ) -> Result<()> {
     let events: Vec<Event> = client.get("/events").await?;
     let matched = find_by_prefix(&events, id_prefix)?;
@@ -450,6 +518,9 @@ async fn update(
                 tags,
                 recurrence: None, // Not supported in update for now
                 reminder_minutes: reminder,
+                end_date,
+                excluded_dates: exclude_dates,
+                detached_from_id,
             },
         )
         .await?;
@@ -472,6 +543,78 @@ async fn delete(client: &Client, id_prefix: &str) -> Result<()> {
         matched.title
     );
     Ok(())
+}
+
+async fn import(client: &Client, file_path: &str) -> Result<()> {
+    let expanded = expand_home(file_path);
+    let path = PathBuf::from(&expanded);
+
+    if !path.exists() {
+        anyhow::bail!("Fichier non trouvé: {}", expanded);
+    }
+
+    let content = fs::read_to_string(&path)?;
+
+    // Try to parse as ImportEvents wrapper first
+    if let Ok(import_data) = serde_json::from_str::<ImportEvents>(&content) {
+        let count = import_data.events.len();
+        let result: Vec<Event> = client.post("/events/import", &import_data).await?;
+        println!(
+            "{} {} événement(s) importé(s)",
+            "✓".green().bold(),
+            result.len()
+        );
+        for event in &result {
+            println!("  - {}", event.title);
+        }
+        if result.len() != count {
+            println!(
+                "  {} Note: Seulement {} sur {} événements ont été créés",
+                "⚠".yellow(),
+                result.len(),
+                count
+            );
+        }
+        return Ok(());
+    }
+
+    // Try to parse as single ImportEvent
+    if let Ok(single_event) = serde_json::from_str::<ImportEvent>(&content) {
+        let result: Event = client.post("/events/import", &ImportEvents { events: vec![single_event] }).await?;
+        println!(
+            "{} Événement importé: {}",
+            "✓".green().bold(),
+            result.title.bold()
+        );
+        return Ok(());
+    }
+
+    // Try to parse as array of ImportEvent
+    if let Ok(events_array) = serde_json::from_str::<Vec<ImportEvent>>(&content) {
+        let count = events_array.len();
+        let result: Vec<Event> = client.post("/events/import", &ImportEvents { events: events_array }).await?;
+        println!(
+            "{} {} événement(s) importé(s)",
+            "✓".green().bold(),
+            result.len()
+        );
+        for event in &result {
+            println!("  - {}", event.title);
+        }
+        if result.len() != count {
+            println!(
+                "  {} Note: Seulement {} sur {} événements ont été créés",
+                "⚠".yellow(),
+                result.len(),
+                count
+            );
+        }
+        return Ok(());
+    }
+
+    anyhow::bail!(
+        "Format JSON invalide. Attendu: {{\"events\": [...]}} ou [...] ou un seul événement"
+    );
 }
 
 fn find_by_prefix<'a>(events: &'a [Event], prefix: &str) -> Result<&'a Event> {

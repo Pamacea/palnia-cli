@@ -4,7 +4,7 @@ mod config;
 mod types;
 
 use clap::{Parser, Subcommand};
-use commands::{auth, calendar, events, habits, images, init, tasks, update};
+use commands::{auth, calendar, events, habits, images, init, tasks, timer, tokens, update};
 
 #[derive(Parser)]
 #[command(name = "palnia", version, about = "CLI for Palnia productivity app")]
@@ -50,6 +50,16 @@ enum Commands {
         #[command(subcommand)]
         action: Option<images::ImageAction>,
     },
+    /// Manage timer state (Pomodoro)
+    Timer {
+        #[command(subcommand)]
+        action: Option<timer::TimerAction>,
+    },
+    /// Manage API tokens
+    Tokens {
+        #[command(subcommand)]
+        action: Option<tokens::TokenAction>,
+    },
     /// Initialize Palnia integrations
     Init {
         /// Generate .claude/PALNIA.md and add @PALNIA.md to CLAUDE.md
@@ -83,6 +93,8 @@ async fn main() {
         Commands::Habits { action } => habits::run(action).await,
         Commands::Agenda { action } => calendar::run(action).await,
         Commands::Images { action } => images::run(action).await,
+        Commands::Timer { action } => timer::run(action).await,
+        Commands::Tokens { action } => tokens::run(action).await,
         Commands::Init { claude_code } => {
             if claude_code {
                 init::claude_code()

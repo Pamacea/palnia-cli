@@ -85,6 +85,47 @@ pub struct AddSubtask {
     pub title: String,
 }
 
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ReorderTasks {
+    pub task_id: String,
+    pub new_index: usize,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ImportTask {
+    pub title: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub category: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub status: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub priority: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub due_date: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub notes: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tags: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub subtasks: Option<Vec<ImportSubtask>>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ImportSubtask {
+    pub title: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub done: Option<bool>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ImportTasks {
+    pub tasks: Vec<ImportTask>,
+}
+
 // ============ Events ============
 
 #[derive(Debug, Deserialize)]
@@ -102,8 +143,72 @@ pub struct Event {
     pub tags: Vec<String>,
     pub recurrence: Option<RecurrenceRule>,
     pub reminder_minutes: Option<i32>,
+    pub end_date: Option<String>,
+    pub excluded_dates: Option<Vec<String>>,
+    pub detached_from_id: Option<String>,
+    pub subtasks: Option<Vec<EventSubtask>>,
     pub created_at: String,
     pub updated_at: String,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+#[allow(dead_code)]
+pub struct EventSubtask {
+    pub id: String,
+    pub title: String,
+    pub done: bool,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CreateEventSubtask {
+    pub title: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ImportEvent {
+    pub title: String,
+    pub date: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub start_time: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub end_time: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub category: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub notes: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tags: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub all_day: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub recurrence: Option<RecurrenceRule>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reminder_minutes: Option<i32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub end_date: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub excluded_dates: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub subtasks: Option<Vec<ImportEventSubtask>>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ImportEventSubtask {
+    pub title: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub done: Option<bool>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ImportEvents {
+    pub events: Vec<ImportEvent>,
 }
 
 #[derive(Debug, Serialize)]
@@ -129,6 +234,14 @@ pub struct CreateEvent {
     pub recurrence: Option<RecurrenceRule>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reminder_minutes: Option<i32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub end_date: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub excluded_dates: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub detached_from_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub subtasks: Option<Vec<CreateEventSubtask>>,
 }
 
 #[derive(Debug, Serialize)]
@@ -153,6 +266,12 @@ pub struct UpdateEvent {
     pub recurrence: Option<RecurrenceRule>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reminder_minutes: Option<i32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub end_date: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub excluded_dates: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub detached_from_id: Option<String>,
 }
 
 // ============ Habits ============
@@ -168,13 +287,28 @@ pub struct Habit {
     pub completed_dates: Vec<String>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct CreateHabit {
     pub title: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub category: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub frequency: Option<String>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct UpdateHabit {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub title: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub category: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub frequency: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ImportHabits {
+    pub habits: Vec<CreateHabit>,
 }
 
 // ============ Recurrence ============
@@ -226,4 +360,27 @@ pub struct ImageQuota {
     pub used: u64,
     pub limit: u64,
     pub count: u64,
+}
+
+// ============ API Tokens ============
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[allow(dead_code)]
+pub struct ApiToken {
+    pub id: String,
+    pub name: String,
+    pub prefix: String,
+    pub expires_at: Option<String>,
+    pub last_used_at: Option<String>,
+    pub created_at: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub token: Option<String>, // Only returned on creation
+}
+
+#[derive(Debug, Serialize)]
+pub struct CreateToken {
+    pub name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub expires_in_days: Option<u32>,
 }
